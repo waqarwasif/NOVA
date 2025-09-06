@@ -9,11 +9,11 @@ import pyjokes
 import psutil
 import requests
 import google.generativeai as genai
-
+ 
 genai.configure(api_key="AIzaSyAA2lq7nGaM65JY-X3Dx50Bc3U75sjuDGk")
 WEATHER_API_KEY = "DX6HWG2UJREYCSUM2YW2D9U5C"
 NEWS_API_KEY = "pub_f6194951aff54d578686f24a6c15d7d4"
-
+ 
 
 def ask_gpt(prompt):
     try:
