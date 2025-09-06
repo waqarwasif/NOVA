@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pyttsx3
+wikipedia
+pyjokes
+psutil
+requests
+google-generativeai

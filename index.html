@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVA Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+        }
+
+        #chat {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            height: 70vh;
+            padding: 15px;
+            border: 2px solid #6366f1;
+            border-radius: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 30px #6366f1;
+            scroll-behavior: smooth;
+        }
+
+        .chat-bubble {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            font-size: 1rem;
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .user {
+            background: linear-gradient(90deg, #1f2937, #111827);
+            align-self: flex-end;
+            color: #fff;
+            box-shadow: 0 0 10px #3b82f6;
+        }
+
+        .nova {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            align-self: flex-start;
+            color: #fff;
+            box-shadow: 0 0 15px #a78bfa;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #inputArea {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        #inputText {
+            flex: 1;
+            padding: 12px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #6366f1;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            box-shadow: 0 0 10px #6366f1;
+            transition: 0.2s;
+        }
+
+        #inputText:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 20px #8b5cf6;
+        }
+
+        button {
+            padding: 12px 18px;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        #sendBtn {
+            background: #6366f1;
+            box-shadow: 0 0 10px #6366f1;
+        }
+
+        #sendBtn:hover {
+            background: #8b5cf6;
+            box-shadow: 0 0 20px #a78bfa;
+        }
+
+        #voiceBtn {
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        #voiceBtn:hover {
+            background: #34d399;
+            box-shadow: 0 0 20px #34d399;
+        }
+
+        /* Floating NOVA Avatar */
+        #novaAvatar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            box-shadow: 0 0 30px #a78bfa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen relative">
+
+    <div id="novaAvatar">🤖</div>
+
+    <div class="w-full max-w-2xl p-6 bg-gray-900 rounded-3xl shadow-2xl border border-purple-600">
+        <h1 class="text-4xl font-bold text-center mb-6 text-purple-400">NOVA Assistant</h1>
+        <div id="chat"></div>
+        <div id="inputArea">
+            <input id="inputText" type="text" placeholder="Type your command..." />
+            <button id="sendBtn">Send</button>
+            <button id="voiceBtn">🎤</button>
+        </div>
+        <div class="flex gap-4 mt-4 justify-center">
+            <button onclick="sendCommand('open youtube')">YouTube</button>
+            <button onclick="sendCommand('open google')">Google</button>
+            <button onclick="sendCommand('notepad')">Notepad</button>
+            <button onclick="sendCommand('vs code')">VS Code</button>
+            <button onclick="sendCommand('weather')">Weather</button>
+            <button onclick="sendCommand('news')">News</button>
+        </div>
+    </div>
+
+    <script>
+        const chat = document.getElementById("chat");
+        const inputText = document.getElementById("inputText");
+        const sendBtn = document.getElementById("sendBtn");
+        const voiceBtn = document.getElementById("voiceBtn");
+
+        function addMessage(sender, message) {
+            const div = document.createElement("div");
+            div.className = `chat-bubble ${sender}`;
+            div.innerText = message;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        async function sendCommand(text) {
+            addMessage("user", text);
+            const res = await fetch("http://127.0.0.1:8000/command", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text })
+            });
+            const data = await res.json();
+            addMessage("nova", data.reply);
+            speechSynthesis.speak(new SpeechSynthesisUtterance(data.reply));
+        }
+
+        sendBtn.onclick = () => {
+            if (inputText.value.trim()) {
+                sendCommand(inputText.value.trim());
+                inputText.value = "";
+            }
+        };
+
+        // Voice input
+        voiceBtn.onclick = () => {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-IN";
+            recognition.start();
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                sendCommand(text);
+            };
+        };
+
+        // Enter key send
+        inputText.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") { sendBtn.click(); }
+        });
+    </script>
+
+</body>
+
+</html>
