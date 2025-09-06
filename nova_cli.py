@@ -271,3 +271,4 @@ if __name__ == "__main__":
             speechtxt(reply)
 
         time.sleep(1)
+ 
